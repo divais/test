@@ -51,6 +51,9 @@ import 'runner_suite.dart';
 /// Load tests will always be emitted through [onTestStarted] so users can watch
 /// their event streams once they start running.
 class Engine {
+  /// The test runner configuration.
+  final Configuration _config;
+
   /// Whether [run] has been called yet.
   var _runCalled = false;
 
@@ -190,15 +193,10 @@ class Engine {
   Stream get onIdle => _group.onIdle;
 
   /// Creates an [Engine] that will run all tests provided via [suiteSink].
-  ///
-  /// [concurrency] controls how many suites are run at once, and defaults to 1.
-  /// [maxSuites] controls how many suites are *loaded* at once, and defaults to
-  /// four times [concurrency].
-  Engine({int concurrency, int maxSuites})
-      : _runPool = new Pool(concurrency == null ? 1 : concurrency),
-        _loadPool = new Pool(maxSuites == null
-            ? (concurrency == null ? 2 : concurrency * 2)
-            : maxSuites) {
+  Engine(Configuration config)
+      : _config = config,
+        _runPool = new Pool(config.concurrency),
+        _loadPool = new Pool(config.concurrency * 2) {
     _group.future.then((_) {
       _onTestStartedGroup.close();
       _onSuiteStartedController.close();
@@ -276,8 +274,8 @@ class Engine {
       List<Group> parents) async {
     parents.add(group);
     try {
-      if (group.metadata.skip) {
-        await _runSkippedTest(suiteController, group, parents);
+      if (!_config.runSkipped && group.metadata.skip) {
+        await _runSkipipedTest(suiteController, group, parents);
         return;
       }
 
@@ -295,7 +293,7 @@ class Engine {
 
           if (entry is Group) {
             await _runGroup(suiteController, entry, parents);
-          } else if (entry.metadata.skip) {
+          } else if (!_config.runSkipped && entry.metadata.skip) {
             await _runSkippedTest(suiteController, entry, parents);
           } else {
             var test = entry as Test;

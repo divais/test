@@ -68,7 +68,7 @@ class Runner {
   /// Creates a new runner based on [configuration].
   factory Runner(Configuration config) {
     var loader = new Loader(config);
-    var engine = new Engine(concurrency: config.concurrency);
+    var engine = new Engine(config);
 
     var reporter;
     switch (config.reporter) {

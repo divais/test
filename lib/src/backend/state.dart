@@ -74,6 +74,11 @@ class Result {
   /// Note that this doesn't mean that the test won't fail in the future.
   static const success = const Result._("success");
 
+  /// The test or an assertion in it was skipped.
+  ///
+  /// Note that this doesn't mean that the test won't fail in the future.
+  static const skipped = const Result._("skipped");
+
   /// The test has failed.
   ///
   /// A failure is specifically caused by a [TestFailure] being thrown; any
@@ -93,6 +98,7 @@ class Result {
       case "success": return Result.success;
       case "failure": return Result.failure;
       case "error": return Result.error;
+      case "skipped": return Result.skipped;
       default:
         throw new ArgumentError('Invalid result name "$name".');
     }
